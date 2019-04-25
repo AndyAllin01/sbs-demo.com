@@ -29,8 +29,10 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", handlerFunc)
 	r.HandleFunc("/signup", signup).Methods("GET")
-	r.HandleFunc("/signup", handlerFunc).Methods("POST")
-//	r.HandleFunc("/signup", signupPost).Methods("POST")
+	//r.HandleFunc("/signup", handlerFunc).Methods("POST")
+	r.HandleFunc("/login", login).Methods("GET")
+	r.HandleFunc("/login", loginPost).Methods("POST")
+	r.HandleFunc("/signup", signupPost).Methods("POST")
 	http.ListenAndServe(":8080", r)
 
 }
@@ -42,13 +44,23 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err) //problem with template - no point continuing
 	}
-	//http.Redirect(w, r, r.Header.Get("Referer"), 302)
-
-	//handlerFunc(w, r)
 }
 
-/*
 //signupPost processes entered details and initiates automated email authorization
-func signupPost(w http.ResponseWriter, r http.Request){
+func signupPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("SP")
+	http.Redirect(w, r, "/localhost:8080/", 200) // temporary redirect
+}
 
-}*/
+func login(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	err := tpl.ExecuteTemplate(w, "login.gohtml", nil)
+	if err != nil {
+		panic(err) //problem with template - no point continuing
+	}
+}
+
+func loginPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("LP")
+	http.Redirect(w, r, "localhost:8080/", 200) // temporary redirect
+}
