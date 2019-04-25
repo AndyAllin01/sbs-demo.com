@@ -3,16 +3,39 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"text/template"
 	"time"
 
 	"github.com/gorilla/mux"
+
+	_ "github.com/lib/pq" //use postgresql to store/validate users and save lists
 )
+
+//toDo is top-level list linking user (ID) to a list
+type toDo struct {
+	ID     string //unique email address
+	events []listToDo
+}
+
+//listToDo is a possible sub-list
+type listToDo struct {
+	thingToDo string
+	emement   []string
+}
 
 var tpl *template.Template
 
+var mtx sync.Mutex // can multiple users access the same list?
+
 func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
+	/*	psqlDetail := "postgres://user:password@database_location?sslmode=disable"
+
+		db, err := sql.Open("postgres", psqlDetail)
+		if err != nil {
+			panic(err)
+		}*/
 }
 
 func handlerFunc(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +57,6 @@ func main() {
 	r.HandleFunc("/login", loginPost).Methods("POST")
 	r.HandleFunc("/signup", signupPost).Methods("POST")
 	http.ListenAndServe(":8080", r)
-
 }
 
 func signup(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +71,9 @@ func signup(w http.ResponseWriter, r *http.Request) {
 //signupPost processes entered details and initiates automated email authorization
 func signupPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("SP")
-	http.Redirect(w, r, "/localhost:8080/", 200) // temporary redirect
+	http.Redirect(w, r, "/", http.StatusSeeOther) // temporary redirect
+	//check for duplicate email
+	//if unique, add to database user table
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -62,5 +86,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 func loginPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("LP")
-	http.Redirect(w, r, "localhost:8080/", 200) // temporary redirect
+	http.Redirect(w, r, "/", http.StatusSeeOther) // temporary redirect
+	//check if username and password is valid
+
 }
